@@ -55,6 +55,20 @@ namespace Login.Controllers
         [HttpPost("login")]
         public IActionResult Login(LoginUser user)
         {
+            List<Dictionary<string, object>> userRows = DbConnector.Query($"SELECT * FROM users WHERE email = '{user.email}'");
+            if(userRows.Count < 1)
+            {
+                ModelState.AddModelError("email", "Invalid email/password");
+            }
+            else
+            {
+                Dictionary<string, object> theUser = userRows.First();
+                string pwInDB = (string)theUser["password"];
+                int userIdInDB = (int)theUser["user_id"];
+
+                PasswordHasher<LoginUser> hasher = new PasswordHasher<LoginUser>();
+                PasswordVerificationResult result = hasher.VerifyHashedPassword(user, pwInDB, user.password);
+            }
             return View("Login");
         }
         public IActionResult Error()
